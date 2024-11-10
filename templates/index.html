@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam with Location Overlay</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+        }
+        #video-container {
+            position: relative;
+            display: inline-block;
+        }
+        #video {
+            width: 640px;
+            height: 480px;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+        #location-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        #error-message {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="video-container">
+        <video id="video" autoplay playsinline></video>
+        <div id="location-overlay">Loading location...</div>
+    </div>
+    <div id="error-message"></div>
+
+    <script>
+        async function setupWebcam() {
+            const video = document.getElementById('video');
+            const errorMessage = document.getElementById('error-message');
+
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    video.srcObject = stream;
+                } catch (error) {
+                    errorMessage.textContent = "Error accessing webcam: " + error.message;
+                }
+            } else {
+                errorMessage.textContent = "Webcam access is not supported on this browser.";
+            }
+        }
+
+        function updateLocation() {
+            const locationOverlay = document.getElementById('location-overlay');
+            const errorMessage = document.getElementById('error-message');
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        locationOverlay.innerText = `Latitude: ${latitude.toFixed(4)}, Longitude: ${longitude.toFixed(4)}`;
+                    },
+                    (error) => {
+                        locationOverlay.innerText = "Location access denied";
+                        errorMessage.textContent = "Error accessing location: " + error.message;
+                    }
+                );
+            } else {
+                errorMessage.textContent = "Geolocation is not supported on this browser.";
+            }
+        }
+
+        // Run setup functions after user interaction (some mobile browsers require it)
+        document.addEventListener('DOMContentLoaded', () => {
+            setupWebcam();
+            updateLocation();
+        });
+    </script>
+
+</body>
+</html>
